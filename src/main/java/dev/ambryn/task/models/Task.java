@@ -1,5 +1,7 @@
 package dev.ambryn.task.models;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.ambryn.task.interfaces.State;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -15,12 +17,14 @@ public class Task {
     private LocalDateTime finishedAt;
     private int nth;
     private Long result;
-    private Status status;
+    @JsonSerialize(using = StateSerializer.class)
+    private State state;
 
     public Task() {
         this.id = ++numberOfTasks;
         this.createdAt = LocalDateTime.now();
-        this.status = Status.NOT_STARTED;
+        this.state = new NotStarted(this);
+        this.state.setContext(this);
     }
 
     public Task(String name) {
@@ -29,27 +33,25 @@ public class Task {
     }
 
     public void start() {
-        this.startedAt = LocalDateTime.now();
-        this.status = Status.RUNNING;
+        this.state.start();
     }
 
     public void finish() {
-        this.finishedAt = LocalDateTime.now();
-        this.status = Status.FINISHED;
+        this.state.finish();
     }
 
     public void cancel() {
-        this.status = Status.CANCELED;
+        this.state.cancel();
+    }
+
+    public void error() {
+        this.state.error();
     }
 
     public void describe() {
         System.out.println("Task " + this.id + " - Took " + ChronoUnit.SECONDS.between(startedAt,
                                                                                        finishedAt) + "s to finish! - "
                                    + "Result: " + result);
-    }
-
-    public void error() {
-        this.status = Status.ERROR;
     }
 
     public int getNth() {

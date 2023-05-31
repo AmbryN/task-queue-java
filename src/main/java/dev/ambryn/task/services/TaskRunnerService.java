@@ -1,6 +1,7 @@
 package dev.ambryn.task.services;
 
-import dev.ambryn.task.models.Status;
+import dev.ambryn.task.models.Finished;
+import dev.ambryn.task.models.Running;
 import dev.ambryn.task.models.Task;
 import dev.ambryn.task.utils.MathUtils;
 import org.springframework.stereotype.Service;
@@ -46,14 +47,14 @@ public class TaskRunnerService {
     public Set<Task> getRunningTasks() {
         return this.tasks.values()
                          .stream()
-                         .filter(task -> task.getStatus() == Status.RUNNING)
+                         .filter(task -> task.getState() instanceof Running)
                          .collect(Collectors.toSet());
     }
 
     public Iterable<Task> getFinishedTasks() {
         return this.tasks.values()
                          .stream()
-                         .filter(task -> task.getStatus() == Status.FINISHED)
+                         .filter(task -> task.getState() instanceof Finished)
                          .toList();
     }
 
