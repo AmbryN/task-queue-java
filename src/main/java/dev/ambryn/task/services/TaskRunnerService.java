@@ -2,22 +2,22 @@ package dev.ambryn.task.services;
 
 import dev.ambryn.task.models.Status;
 import dev.ambryn.task.models.Task;
+import dev.ambryn.task.utils.MathUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 public class TaskRunnerService {
-    public static final int MAX_CONCURRENT_TASKS = 2;
+    public static final int MAX_CONCURRENT_TASKS = 4;
     private final Queue<Task> taskQueue = new ArrayDeque<>();
     private final Map<Integer, Task> tasks = new HashMap<>();
-    private final Map<Integer, CompletableFuture<Void>> taskHandles = new HashMap<>();
+    private final Map<Integer, CompletableFuture<Long>> taskHandles = new HashMap<>();
     private int currentRunningTasks = 0;
 
     public TaskRunnerService() {
@@ -74,9 +74,10 @@ public class TaskRunnerService {
         while (this.currentRunningTasks < MAX_CONCURRENT_TASKS && this.taskQueue.size() > 0) {
             Task task = this.taskQueue.remove();
             this.tasks.put(task.getId(), task);
-            CompletableFuture<Void> taskHandle = this.runTask(task);
+            CompletableFuture<Long> taskHandle = this.runTask(task);
 
-            taskHandle.thenRun(() -> {
+            taskHandle.thenAccept((result) -> {
+                task.setResult(result);
                 task.finish();
                 task.describe();
                 this.currentRunningTasks--;
@@ -86,6 +87,7 @@ public class TaskRunnerService {
                 if (ex instanceof CancellationException) {
                     task.cancel();
                 } else {
+                    System.out.println(ex.getMessage());
                     task.error();
                 }
                 this.currentRunningTasks--;
@@ -103,14 +105,12 @@ public class TaskRunnerService {
         this.currentRunningTasks = 0;
     }
 
-    private CompletableFuture<Void> runTask(Task task) {
+    private CompletableFuture<Long> runTask(Task task) {
         task.start();
         this.currentRunningTasks++;
-        return CompletableFuture.runAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                TimeUnit.SECONDS.sleep(task.getDurationInSeconds());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                return MathUtils.fib(task.getNth());
             } catch (CancellationException e) {
                 throw new CompletionException(e);
             }

@@ -13,14 +13,14 @@ public class Task {
     private LocalDateTime createdAt;
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
-    private int durationInSeconds;
+    private int nth;
+    private Long result;
     private Status status;
 
     public Task() {
         this.id = ++numberOfTasks;
         this.createdAt = LocalDateTime.now();
         this.status = Status.NOT_STARTED;
-        this.durationInSeconds = 10;
     }
 
     public Task(String name) {
@@ -44,10 +44,19 @@ public class Task {
 
     public void describe() {
         System.out.println("Task " + this.id + " - Took " + ChronoUnit.SECONDS.between(startedAt,
-                                                                                       finishedAt) + "s to finish!");
+                                                                                       finishedAt) + "s to finish! - "
+                                   + "Result: " + result);
     }
 
     public void error() {
         this.status = Status.ERROR;
+    }
+
+    public int getNth() {
+        return this.nth;
+    }
+
+    public void setResult(Long result) {
+        this.result = result;
     }
 }
