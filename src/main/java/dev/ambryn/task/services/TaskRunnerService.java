@@ -1,8 +1,7 @@
 package dev.ambryn.task.services;
 
-import dev.ambryn.task.models.Finished;
-import dev.ambryn.task.models.Running;
-import dev.ambryn.task.models.Task;
+import dev.ambryn.task.models.Error;
+import dev.ambryn.task.models.*;
 import dev.ambryn.task.utils.MathUtils;
 import org.springframework.stereotype.Service;
 
@@ -30,11 +29,7 @@ public class TaskRunnerService {
         this.run();
     }
 
-    public Collection<Task> getQueuedTasks() {
-        return Collections.unmodifiableCollection(this.taskQueue);
-    }
-
-    public Set<Task> getTasks() {
+    public Collection<Task> getTasks() {
         return Stream.of(this.tasks.values()
                                    .stream()
                                    .toList(),
@@ -44,18 +39,36 @@ public class TaskRunnerService {
                      .collect(Collectors.toSet());
     }
 
-    public Set<Task> getRunningTasks() {
+    public Collection<Task> getQueuedTasks() {
+        return Collections.unmodifiableCollection(this.taskQueue);
+    }
+
+    public Collection<Task> getRunningTasks() {
         return this.tasks.values()
                          .stream()
                          .filter(task -> task.getState() instanceof Running)
                          .collect(Collectors.toSet());
     }
 
-    public Iterable<Task> getFinishedTasks() {
+    public Collection<Task> getFinishedTasks() {
         return this.tasks.values()
                          .stream()
                          .filter(task -> task.getState() instanceof Finished)
-                         .toList();
+                         .collect(Collectors.toSet());
+    }
+
+    public Collection<Task> getErroredTasks() {
+        return this.tasks.values()
+                         .stream()
+                         .filter(task -> task.getState() instanceof Error)
+                         .collect(Collectors.toSet());
+    }
+
+    public Collection<Task> getCancelledTasks() {
+        return this.tasks.values()
+                         .stream()
+                         .filter(task -> task.getState() instanceof Cancelled)
+                         .collect(Collectors.toSet());
     }
 
     public Task getTask(int id) {
@@ -64,7 +77,8 @@ public class TaskRunnerService {
 
     public void cancelTask(int id) {
         this.taskHandles.get(id)
-                        .completeExceptionally(new CancellationException("Canceled by user"));
+                        .completeExceptionally(new CancellationException("Task id=" + id + " has been canceled by " +
+                                                                                 "user"));
     }
 
     public int sizeOfQueue() {
@@ -86,6 +100,7 @@ public class TaskRunnerService {
             });
             taskHandle.exceptionally((ex) -> {
                 if (ex instanceof CancellationException) {
+                    System.out.println(ex.getMessage());
                     task.cancel();
                 } else {
                     System.out.println(ex.getMessage());

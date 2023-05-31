@@ -16,23 +16,31 @@ public class TaskController {
     TaskRunnerService trs;
 
     @PostMapping
-    public ResponseEntity<List<Task>> createTask(@RequestBody List<Task> tasks) {
+    public ResponseEntity<Iterable<Task>> createTask(@RequestBody List<Task> tasks) {
         this.trs.addTasks(tasks);
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping
-    public ResponseEntity<Iterable<Task>> getTasks(@RequestParam("type") Optional<String> type) {
-        if (type.isPresent()) {
-            if (type.get()
-                    .equals("running")) {
-                return ResponseEntity.ok(this.trs.getRunningTasks());
-            } else if (type.get()
-                           .equals("queued")) {
-                return ResponseEntity.ok(this.trs.getQueuedTasks());
-            } else if (type.get()
-                           .equals("finished")) {
-                return ResponseEntity.ok(this.trs.getFinishedTasks());
+    public ResponseEntity<Iterable<Task>> getTasks(@RequestParam("status") Optional<String> oStatus) {
+        if (oStatus.isPresent()) {
+            String status = oStatus.get();
+            switch (status) {
+                case "running" -> {
+                    return ResponseEntity.ok(this.trs.getRunningTasks());
+                }
+                case "queued" -> {
+                    return ResponseEntity.ok(this.trs.getQueuedTasks());
+                }
+                case "finished" -> {
+                    return ResponseEntity.ok(this.trs.getFinishedTasks());
+                }
+                case "error" -> {
+                    return ResponseEntity.ok(this.trs.getErroredTasks());
+                }
+                case "cancelled" -> {
+                    return ResponseEntity.ok(this.trs.getCancelledTasks());
+                }
             }
         }
 
