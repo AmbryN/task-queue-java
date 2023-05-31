@@ -32,7 +32,7 @@ class TaskControllerTest {
 
     @Test
     public void createTask_shouldReturnJsonWhenValidTaskIsPassed_200OK() throws Exception {
-        String jsonTask = "{\"name\":\"Test\"}";
+        String jsonTask = "[{\"name\":\"Test\",\"nth\":10}]";
         this.mvc.perform(post("/tasks").content(jsonTask)
                                        .contentType(MediaType.APPLICATION_JSON)
                                        .contentType(MediaType.APPLICATION_JSON))

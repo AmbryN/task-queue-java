@@ -30,18 +30,18 @@ public class TaskRunnerService {
         this.run();
     }
 
-    public Iterable<Task> getQueuedTasks() {
+    public Collection<Task> getQueuedTasks() {
         return Collections.unmodifiableCollection(this.taskQueue);
     }
 
-    public Iterable<Task> getTasks() {
+    public Set<Task> getTasks() {
         return Stream.of(this.tasks.values()
                                    .stream()
                                    .toList(),
                          this.taskQueue.stream()
                                        .toList())
                      .flatMap(Collection::stream)
-                     .toList();
+                     .collect(Collectors.toSet());
     }
 
     public Set<Task> getRunningTasks() {

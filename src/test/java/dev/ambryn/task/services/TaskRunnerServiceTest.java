@@ -24,7 +24,7 @@ class TaskRunnerServiceTest {
 
     @Test
     public void addTask_shouldAddTaskToQueue() {
-        List<Task> tasks = IntStream.range(0, 3)
+        List<Task> tasks = IntStream.range(0, TaskRunnerService.MAX_CONCURRENT_TASKS + 1)
                                     .boxed()
                                     .map(i -> new Task(String.valueOf(i)))
                                     .toList();
@@ -50,7 +50,7 @@ class TaskRunnerServiceTest {
 
     @Test
     public void run_ifBacklogBiggerAsMaxConcurrentTasks_runOnlyMaxConcurrentTasks() {
-        List<Task> tasks = IntStream.range(0, 2)
+        List<Task> tasks = IntStream.range(0, TaskRunnerService.MAX_CONCURRENT_TASKS + 1)
                                     .boxed()
                                     .map(i -> new Task(String.valueOf(i)))
                                     .toList();

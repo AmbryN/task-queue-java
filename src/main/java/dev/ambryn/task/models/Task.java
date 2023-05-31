@@ -30,6 +30,7 @@ public class Task {
     public Task(String name) {
         this();
         this.name = name;
+        this.nth = 40;
     }
 
     public void start() {
