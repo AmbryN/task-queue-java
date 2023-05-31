@@ -11,5 +11,5 @@ The tasks implement the State design pattern for the user to query their status.
 
 ## Build with
 
-[Java](https://www.java.com/fr/)
-[Spring Boot](https://spring.io/projects/spring-boot/)
+- [Java](https://www.java.com/fr/)
+- [Spring Boot](https://spring.io/projects/spring-boot/)
