@@ -1,6 +1,5 @@
 package dev.ambryn.task.services;
 
-import dev.ambryn.task.models.Error;
 import dev.ambryn.task.models.*;
 import dev.ambryn.task.utils.MathUtils;
 import org.springframework.stereotype.Service;
@@ -60,7 +59,7 @@ public class TaskRunnerService {
     public Collection<Task> getErroredTasks() {
         return this.tasks.values()
                          .stream()
-                         .filter(task -> task.getState() instanceof Error)
+                         .filter(task -> task.getState() instanceof Errored)
                          .collect(Collectors.toSet());
     }
 
@@ -77,8 +76,7 @@ public class TaskRunnerService {
 
     public void cancelTask(int id) {
         this.taskHandles.get(id)
-                        .completeExceptionally(new CancellationException("Task id=" + id + " has been canceled by " +
-                                                                                 "user"));
+                        .completeExceptionally(new CancellationException("Task id=" + id + " has been canceled by " + "user"));
     }
 
     public int sizeOfQueue() {

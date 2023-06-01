@@ -2,9 +2,9 @@ package dev.ambryn.task.models;
 
 import dev.ambryn.task.interfaces.State;
 
-public class Error extends State {
+public class Errored extends State {
 
-    public Error(Task context) {
+    public Errored(Task context) {
         this.context = context;
         this.status = Status.ERROR;
     }

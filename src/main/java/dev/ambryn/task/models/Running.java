@@ -18,7 +18,7 @@ public class Running extends State {
 
     @Override
     public void error() {
-        this.context.setState(new Error(context));
+        this.context.setState(new Errored(context));
     }
 
     @Override
