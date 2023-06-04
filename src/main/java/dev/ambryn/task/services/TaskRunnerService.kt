@@ -2,7 +2,6 @@ package dev.ambryn.task.services
 
 import dev.ambryn.task.models.*
 import dev.ambryn.task.utils.MathUtils
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -26,38 +25,20 @@ class TaskRunnerService {
 
     fun getTasks(): Collection<Task> {
         return Stream.of(
-            tasks.values
-                .stream()
-                .toList(),
-            taskQueue.stream()
-                .toList()
-        )
-            .flatMap { obj: List<Task> -> obj.stream() }
-            .collect(Collectors.toSet())
+            tasks.values.stream().toList(), taskQueue.stream().toList()
+        ).flatMap { obj: List<Task> -> obj.stream() }.collect(Collectors.toSet())
     }
 
     val queuedTasks: Collection<Task>
         get() = Collections.unmodifiableCollection(taskQueue)
     val runningTasks: Collection<Task>
-        get() = tasks.values
-            .stream()
-            .filter { task: Task -> task.state is Running }
-            .collect(Collectors.toSet())
+        get() = tasks.values.stream().filter { task: Task -> task.state is Running }.collect(Collectors.toSet())
     val finishedTasks: Collection<Task>
-        get() = tasks.values
-            .stream()
-            .filter { task: Task -> task.state is Finished }
-            .collect(Collectors.toSet())
+        get() = tasks.values.stream().filter { task: Task -> task.state is Finished }.collect(Collectors.toSet())
     val erroredTasks: Collection<Task>
-        get() = tasks.values
-            .stream()
-            .filter { task: Task -> task.state is Errored }
-            .collect(Collectors.toSet())
+        get() = tasks.values.stream().filter { task: Task -> task.state is Errored }.collect(Collectors.toSet())
     val cancelledTasks: Collection<Task>
-        get() = tasks.values
-            .stream()
-            .filter { task: Task -> task.state is Cancelled }
-            .collect(Collectors.toSet())
+        get() = tasks.values.stream().filter { task: Task -> task.state is Cancelled }.collect(Collectors.toSet())
 
     fun getTask(id: Int): Task? {
         return tasks[id]
@@ -65,6 +46,8 @@ class TaskRunnerService {
 
     fun cancelTask(id: Int) {
         println("Canceling task id=${id}")
+        tasks[id]?.cancel()
+        taskQueue.removeIf { task: Task -> task.id == id }
         taskHandles[id]?.cancel(CancellationException("Task id=${id} has been canceled by user"))
     }
 
@@ -72,18 +55,14 @@ class TaskRunnerService {
         return taskQueue.size
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun run(): Unit {
+    private fun run() {
         while (currentRunningTasks < MAX_CONCURRENT_TASKS && taskQueue.size > 0) {
             val task = taskQueue.remove()
             tasks[task.id] = task
 
-            val taskHandle = GlobalScope.launch {
+            val taskHandle: Job = GlobalScope.launch {
                 runTaskAsync(task)
             }
-
-            taskHandle.cancel()
-
 
             taskHandles[task.id] = taskHandle
         }
@@ -99,16 +78,12 @@ class TaskRunnerService {
     private suspend fun runTaskAsync(task: Task): Unit {
         task.start()
         currentRunningTasks++
-        try {
-            task.result = MathUtils.fib(task.nth)
-            task.finish()
-            task.describe()
-        } catch (ex: Exception) {
-            task.error()
-            println(ex.message)
-        } finally {
-            this.run();
-        }
+
+        task.result = MathUtils.fib(task.nth)
+        task.finish()
+        task.describe()
+        currentRunningTasks--
+
     }
 
     companion object {
